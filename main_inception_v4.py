@@ -16,6 +16,8 @@ from collections import OrderedDict
 from sklearn.model_selection import train_test_split
 
 import model_v4
+import pnasnet
+import nasnet
 
 import torch
 import torch.nn as nn
@@ -310,18 +312,18 @@ def main():
     # 设定GPU ID
     os.environ["CUDA_VISIBLE_DEVICES"] = '0, 1'
     # 小数据集上，batch size不易过大。如出现out of memory，应调小batch size
-    batch_size = 24
+    batch_size = 3
     # 进程数量，最好不要超过电脑最大进程数。windows下报错可以改为workers=0
-    workers = 12
+    workers = 5
 
     # epoch数量，分stage进行，跑完一个stage后降低学习率进入下一个stage
-    stage_epochs = [20, 10, 10]  
+    stage_epochs = [20, 10, 10]
     # 初始学习率
     lr = 1e-4
     # 学习率衰减系数 (new_lr = lr / lr_decay)
     lr_decay = 5
     # 正则化系数
-    weight_decay = 1e-4
+    weight_decay = 5e-5
 
     # 参数初始化
     stage = 0
@@ -334,13 +336,16 @@ def main():
     # 打印结果中，括号前面为实时loss和acc，括号内部为epoch内平均loss和acc
     print_freq = 1
     # 验证集比例
-    val_ratio = 0.12
+    val_ratio = 0.2
     # 是否只验证，不训练
     evaluate = False
     # 是否从断点继续跑
-    resume = False
+    resume = True
     # 创建inception_v4模型
-    model = model_v4.v4(num_classes=12)
+    # model = model_v4.v4(num_classes=12)
+    model = nasnet.nt(num_classes=12)
+    # model = pnasnet.p5(num_classes=12)
+
     model = torch.nn.DataParallel(model).cuda()
 
     # optionally resume from a checkpoint
