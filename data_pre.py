@@ -5,7 +5,7 @@ import matplotlib.image as mpimg
 # import seaborn as sns
 import pandas as pd
 import numpy as np
-
+import random
 
 train_path = './AgriculturalDisease_trainingset/'
 valid_path = './AgriculturalDisease_validationset/'
@@ -22,7 +22,7 @@ def genImage(gpath, datatype):
 
         label = pd.read_csv(gpath + 'label.csv')
         label_gen_dict = {'img_path':[], 'label':[]}  # 生成图片label
-        for i in range(60,61):
+        for i in range(61):
             li = label[label['label'] == i]
             imagenum = li['label'].count()
             print('第%d个，总共有有%d个图片'%(i, imagenum))
@@ -341,6 +341,42 @@ def genImage(gpath, datatype):
                 label = label.append(label_gen_pd)
                 label['label'] = label[['label']].astype('int64')
 
+            if 40 <= imagenum <= 50:
+                for imagefile in imagelist:
+                    rd = random.choice([0, 1])
+                    if rd:
+                        path, imagename = os.path.split(imagefile)
+                        im = Image.open(imagefile)
+                        im = im.convert('RGB')
+                        # im_blur = im.filter(ImageFilter.GaussianBlur)  # 模糊化
+                        # im_sharp = im.filter(ImageFilter.UnsharpMask)  # 锐化增强
+                        im_detail = im.filter(ImageFilter.DETAIL)  # 细节增强
+            #             im_smooth = im.filter(ImageFilter.SMOOTH)  # 平滑滤波
+                        
+                        # img_path_gen.append(gpath + 'gen/' + 'iblur_'+imagename)
+                        # img_path_gen.append(gpath + 'gen/' + 'isharp_' + imagename)
+                        img_path_gen.append(gpath + 'gen/' + 'idetail_'+imagename)
+            #             img_path_gen.append(gpath + 'gen/' + 'ismooth_'+imagename)
+                        # img_path_gen.append(gpath + 'gen/' + 'irotate_'+imagename)
+                        label_gen.extend([int(i)])
+
+
+                        # im_blur.save(gpath + 'gen/' + 'iblur_'+imagename)        
+                        # im_sharp.save(gpath + 'gen/' + 'isharp_' + imagename)  
+                        im_detail.save(gpath + 'gen/' + 'idetail_'+imagename)            
+            #             im_smooth.save(gpath + 'gen/' + 'ismooth_'+imagename)            
+                        # im_retate.save(gpath + 'gen/' + 'irotate_'+imagename)
+
+                        gen_number += 1
+
+                label_dict = {'img_path':img_path_gen, 'label':label_gen}
+                label_gen_dict['img_path'].extend(img_path_gen)
+                label_gen_dict['label'].extend(label_gen)
+                label_gen_pd = pd.DataFrame(label_dict)
+                label = label.append(label_gen_pd)
+                label['label'] = label[['label']].astype('int64')
+
+
             # 数据大于1600的，随机删除多余的数据
             if imagenum > 250:
                 li2=li.sample(frac=0.5)
@@ -358,5 +394,5 @@ def genImage(gpath, datatype):
 
         print('验证集总共生成%d个图片'%gen_number)
 if __name__ == '__main__':
-    genImage(train_path, 'train')
+    # genImage(train_path, 'train')
     genImage(valid_path, 'valid')
